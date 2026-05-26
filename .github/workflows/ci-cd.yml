@@ -1,0 +1,101 @@
+name: ChainResume CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Run frontend linter
+        working-directory: ./frontend
+        run: npm run lint
+        
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Run backend tests
+        working-directory: ./backend
+        run: pytest
+
+  test-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          
+      - name: Install contract dependencies
+        working-directory: ./contracts
+        run: npm ci
+        
+      - name: Compile contracts
+        working-directory: ./contracts
+        run: npx hardhat compile
+        
+      - name: Run contract tests
+        working-directory: ./contracts
+        run: npx hardhat test
+
+  deploy-backend:
+    needs: [test-frontend, test-backend, test-contracts]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Railway
+        run: echo "Deploy to Railway (configure with Railway CLI)"
+        # Add Railway deployment commands here
+
+  deploy-frontend:
+    needs: [test-frontend, test-backend, test-contracts]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Vercel
+        run: echo "Deploy to Vercel (configure with Vercel CLI)"
+        # Add Vercel deployment commands here
+
+  notify:
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update pipeline status
+        run: echo "Pipeline completed - update Supabase status"
