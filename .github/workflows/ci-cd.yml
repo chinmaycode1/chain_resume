@@ -44,13 +44,14 @@ jobs:
         run: pip install -r requirements.txt
       - name: Test backend starts
         working-directory: ./backend
+        env:
+          GROQ_API_KEY: 'test'
+          SUPABASE_URL: 'https://test.supabase.co'
+          SUPABASE_SERVICE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlc3QiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjE5MDAwMDAwMDB9.test'
+          PINATA_API_KEY: 'test'
+          PINATA_SECRET_KEY: 'test'
         run: |
           python -c "import os
-          os.environ['GROQ_API_KEY'] = 'test'
-          os.environ['SUPABASE_URL'] = 'https://test.supabase.co'
-          os.environ['SUPABASE_SERVICE_KEY'] = 'test'
-          os.environ['PINATA_API_KEY'] = 'test'
-          os.environ['PINATA_SECRET_KEY'] = 'test'
           from app.main import app
           print('Backend OK')"
       - run: echo "Backend OK"
