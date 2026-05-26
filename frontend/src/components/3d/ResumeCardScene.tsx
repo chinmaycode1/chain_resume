@@ -27,26 +27,23 @@ function SpinningCard() {
 
 export default function ResumeCardScene() {
   return (
-    <div
+    <Canvas
       style={{
         width: '100%',
-        height: '100vh',
-        minHeight: '600px',
-        background: '#020208',
-        position: 'relative',
+        height: '100%',
+        display: 'block',
+        position: 'absolute',
+        top: 0,
+        left: 0,
       }}
+      camera={{ fov: 45, position: [0, 0, 6] }}
+      gl={{ antialias: true, alpha: false }}
     >
-      <Canvas
-        style={{ width: '100%', height: '100%' }}
-        camera={{ fov: 45, position: [0, 0, 6] }}
-        gl={{ antialias: true, alpha: false }}
-      >
-        <color attach="background" args={['#020208']} />
-        <ambientLight intensity={0.5} />
-        <pointLight position={[5, 5, 5]} intensity={2} color="#00FF94" />
-        <pointLight position={[-5, -5, 5]} intensity={1} color="#00D4FF" />
-        <SpinningCard />
-      </Canvas>
-    </div>
+      <color attach="background" args={['#020208']} />
+      <ambientLight intensity={0.5} />
+      <pointLight position={[5, 5, 5]} intensity={2} color="#00FF94" />
+      <pointLight position={[-5, -5, 5]} intensity={1} color="#00D4FF" />
+      <SpinningCard />
+    </Canvas>
   )
 }

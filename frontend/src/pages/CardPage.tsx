@@ -117,8 +117,11 @@ export default function CardPage() {
       <div
         style={{
           flex: '0 0 55%',
+          width: '100%',
           height: '100vh',
+          minHeight: '600px',
           position: 'relative',
+          overflow: 'hidden',
         }}
         className="card-scene-panel"
       >
@@ -136,7 +139,17 @@ export default function CardPage() {
         />
 
         {/* 3D Scene Container - CRITICAL: Must have viewport height */}
-        <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            minHeight: '600px',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            overflow: 'hidden',
+          }}
+        >
           <ResumeCardScene />
         </div>
 
