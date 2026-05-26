@@ -7,12 +7,12 @@ Blockchain-verified, AI-powered resume platform with 3D animated resume cards.
 - **Frontend:** React 18 + Vite + TypeScript + Tailwind CSS
 - **3D Graphics:** Three.js + React Three Fiber
 - **Animations:** Framer Motion + GSAP
-- **AI:** Claude API (Anthropic)
+- **AI:** Groq API (Llama 3 70B)
 - **Blockchain:** Solidity + Hardhat + Polygon Amoy
 - **Wallet:** RainbowKit + wagmi + ethers.js
 - **Backend:** Python FastAPI
 - **Database:** Supabase
-- **Payments:** Razorpay
+- **Storage:** IPFS (Pinata)
 - **CI/CD:** GitHub Actions
 - **Containerization:** Docker + Docker Compose
 
@@ -40,8 +40,8 @@ chainresume/
 ### 1. Clone Repository
 
 ```bash
-git clone <your-repo-url>
-cd chainresume
+git clone https://github.com/chinmaycode1/chain_resume.git
+cd chain_resume/chainresume
 ```
 
 ### 2. Environment Variables
@@ -54,10 +54,9 @@ cp .env.example .env
 
 Required API keys:
 - Supabase (database & auth)
-- Anthropic Claude API (AI scoring)
+- Groq API (AI scoring with Llama 3)
 - WalletConnect Project ID (wallet connection)
-- Pinata (IPFS storage)
-- Razorpay (payments - optional)
+- Pinata (IPFS storage - optional)
 
 ### 3. Frontend Setup
 
