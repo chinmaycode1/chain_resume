@@ -6,6 +6,101 @@ import json
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
+async def parse_resume_from_pdf(pdf_text: str) -> dict:
+    """
+    Parse PDF text and extract structured resume data using Groq AI
+    """
+    prompt = f"""Extract resume information from this text and return ONLY valid JSON with this exact structure:
+
+{{
+  "full_name": "<full name>",
+  "email": "<email address>",
+  "phone": "<phone number>",
+  "location": "<city, state/country>",
+  "title": "<professional title/headline>",
+  "summary": "<professional summary>",
+  "skills": [
+    {{"name": "<skill name>", "category": "technical", "level": "expert"}}
+  ],
+  "experience": [
+    {{
+      "company": "<company name>",
+      "position": "<job title>",
+      "location": "<location>",
+      "start_date": "<start date>",
+      "end_date": "<end date or 'Present'>",
+      "description": "<brief description>",
+      "achievements": ["<achievement 1>", "<achievement 2>"]
+    }}
+  ],
+  "education": [
+    {{
+      "institution": "<school name>",
+      "degree": "<degree type>",
+      "field": "<field of study>",
+      "location": "<location>",
+      "start_date": "<start year>",
+      "end_date": "<end year>",
+      "gpa": "<gpa if available>",
+      "achievements": ["<achievement 1>"]
+    }}
+  ],
+  "projects": [
+    {{
+      "title": "<project name>",
+      "description": "<description>",
+      "technologies": ["<tech 1>", "<tech 2>"],
+      "url": "<project url if available>",
+      "github_url": "<github url if available>"
+    }}
+  ],
+  "links": [
+    {{"platform": "github", "url": "<github url>"}},
+    {{"platform": "linkedin", "url": "<linkedin url>"}},
+    {{"platform": "portfolio", "url": "<portfolio url>"}}
+  ]
+}}
+
+Rules:
+- Extract ALL information available in the text
+- For skills, categorize as: technical, soft, language, or other
+- For dates, use format like "Jan 2020" or "2020"
+- If information is missing, use empty string "" or empty array []
+- Return ONLY the JSON object, no markdown, no explanation
+
+Resume Text:
+{pdf_text}"""
+
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-70b-versatile",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=4096,
+            temperature=0.2
+        )
+        
+        response_text = response.choices[0].message.content
+        
+        # Extract JSON from response
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "```" in response_text:
+            json_start = response_text.find("```") + 3
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        
+        # Parse and return
+        resume_data = json.loads(response_text)
+        return resume_data
+        
+    except Exception as e:
+        print(f"PDF parsing error: {str(e)}")
+        raise Exception(f"Failed to parse resume: {str(e)}")
+
 async def score_resume_v2(resume: Resume) -> AIScoreResponse:
     """
     Score resume using Groq API with Phase 2 structure

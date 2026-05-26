@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 import { PersonalInfoForm } from '../components/resume/PersonalInfoForm';
 import { ExperienceForm } from '../components/resume/ExperienceForm';
 import { SkillsForm } from '../components/resume/SkillsForm';
+import { PDFUpload } from '../components/resume/PDFUpload';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -14,7 +15,10 @@ const STEPS = [
   { id: 3, name: 'Skills', component: SkillsForm },
 ];
 
+type InputMode = 'pdf' | 'manual';
+
 export const ResumeBuilder = () => {
+  const [inputMode, setInputMode] = useState<InputMode>('pdf');
   const [currentStep, setCurrentStep] = useState(1);
   const [resumeData, setResumeData] = useState<any>({
     full_name: '',
@@ -29,6 +33,7 @@ export const ResumeBuilder = () => {
     projects: [],
     links: [],
   });
+  const [pdfError, setPdfError] = useState('');
 
   const user = useStore((state) => state.user);
   const setResume = useStore((state) => state.setResume);
@@ -151,6 +156,18 @@ export const ResumeBuilder = () => {
     setResumeData({ ...resumeData, [field]: data });
   };
 
+  const handlePDFExtracted = (data: any) => {
+    // Merge PDF data with existing resume data
+    setResumeData({ ...resumeData, ...data });
+    setPdfError('');
+    // Switch to manual mode to show preview
+    setInputMode('manual');
+  };
+
+  const handlePDFError = (error: string) => {
+    setPdfError(error);
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', position: 'relative' }}>
       {/* Background grid */}
@@ -219,7 +236,75 @@ export const ResumeBuilder = () => {
 
       {/* Main Content */}
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 24px', position: 'relative', zIndex: 1 }}>
-        {/* Progress bar */}
+        {/* Input Mode Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '32px',
+            justifyContent: 'center',
+          }}
+        >
+          <button
+            onClick={() => setInputMode('pdf')}
+            style={{
+              padding: '10px 24px',
+              background: inputMode === 'pdf' ? 'var(--green)' : 'transparent',
+              border: `1px solid var(--green)`,
+              color: inputMode === 'pdf' ? '#020208' : 'var(--green)',
+              fontFamily: 'JetBrains Mono',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (inputMode !== 'pdf') {
+                e.currentTarget.style.background = 'rgba(0,255,148,0.1)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (inputMode !== 'pdf') {
+                e.currentTarget.style.background = 'transparent';
+              }
+            }}
+          >
+            📄 UPLOAD PDF
+          </button>
+          <button
+            onClick={() => setInputMode('manual')}
+            style={{
+              padding: '10px 24px',
+              background: inputMode === 'manual' ? 'var(--green)' : 'transparent',
+              border: `1px solid var(--green)`,
+              color: inputMode === 'manual' ? '#020208' : 'var(--green)',
+              fontFamily: 'JetBrains Mono',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (inputMode !== 'manual') {
+                e.currentTarget.style.background = 'rgba(0,255,148,0.1)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (inputMode !== 'manual') {
+                e.currentTarget.style.background = 'transparent';
+              }
+            }}
+          >
+            ✏️ FILL MANUALLY
+          </button>
+        </div>
+
+        {/* Progress bar - only show in manual mode */}
+        {inputMode === 'manual' && (
         <div
           style={{
             display: 'flex',
@@ -314,6 +399,7 @@ export const ResumeBuilder = () => {
             </div>
           ))}
         </div>
+        )}
 
         {/* Form Card */}
         <div
@@ -324,145 +410,204 @@ export const ResumeBuilder = () => {
             padding: '40px',
           }}
         >
-          {/* Section Heading */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              marginBottom: '28px',
-            }}
-          >
-            <div
-              style={{
-                width: '3px',
-                height: '16px',
-                background: 'var(--green)',
-                borderRadius: '2px',
-                boxShadow: '0 0 8px rgba(0,255,148,0.6)',
-                flexShrink: 0,
-              }}
-            />
-            <h2
-              style={{
-                fontFamily: 'JetBrains Mono',
-                fontSize: '11px',
-                fontWeight: 500,
-                color: 'var(--green)',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {currentStep === 1 ? 'IDENTITY' : currentStep === 2 ? 'EXPERIENCE' : 'SKILLS'}
-            </h2>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {currentStep === 1 && (
-                <PersonalInfoForm
-                  data={resumeData}
-                  onChange={(data) => setResumeData({ ...resumeData, ...data })}
+          {inputMode === 'pdf' ? (
+            /* PDF Upload Mode */
+            <>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '28px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '3px',
+                    height: '16px',
+                    background: 'var(--green)',
+                    borderRadius: '2px',
+                    boxShadow: '0 0 8px rgba(0,255,148,0.6)',
+                    flexShrink: 0,
+                  }}
                 />
-              )}
-              {currentStep === 2 && (
-                <ExperienceForm
-                  data={resumeData.experience}
-                  onChange={(data) => updateStepData('experience', data)}
-                />
-              )}
-              {currentStep === 3 && (
-                <SkillsForm
-                  data={resumeData.skills}
-                  onChange={(data) => updateStepData('skills', data)}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+                <h2
+                  style={{
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    color: 'var(--green)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  UPLOAD YOUR RESUME
+                </h2>
+              </div>
 
-          {/* Navigation buttons */}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '40px',
-              paddingTop: '24px',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 1}
-              style={{
-                padding: '12px 24px',
-                background: 'transparent',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: currentStep === 1 ? 'rgba(102, 102, 128, 0.5)' : '#666680',
-                fontFamily: 'JetBrains Mono',
-                fontSize: '12px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                borderRadius: '4px',
-                cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
-                opacity: currentStep === 1 ? 0.5 : 1,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (currentStep !== 1) {
-                  e.currentTarget.style.color = '#ffffff';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentStep !== 1) {
-                  e.currentTarget.style.color = '#666680';
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-                }
-              }}
-            >
-              ← BACK
-            </button>
-
-            <button
-              onClick={handleNext}
-              style={{
-                padding: '14px 32px',
-                background: 'linear-gradient(135deg, #00FF94 0%, #00CC77 100%)',
-                color: '#020208',
-                fontFamily: 'Space Grotesk',
-                fontSize: '14px',
-                fontWeight: 700,
-                letterSpacing: '0.05em',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '0 0 40px rgba(0,255,148,0.4)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              {currentStep === STEPS.length ? (
-                <>🤖 GET AI SCORE →</>
-              ) : (
-                'NEXT STEP →'
+              {pdfError && (
+                <div
+                  style={{
+                    padding: '12px',
+                    background: 'rgba(255,0,0,0.1)',
+                    border: '1px solid rgba(255,0,0,0.3)',
+                    borderRadius: '4px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <p style={{ color: '#ff4444', fontSize: '13px', fontFamily: 'JetBrains Mono' }}>
+                    {pdfError}
+                  </p>
+                </div>
               )}
-            </button>
-          </div>
+
+              <PDFUpload onExtracted={handlePDFExtracted} onError={handlePDFError} />
+            </>
+          ) : (
+            /* Manual Form Mode */
+            <>
+              {/* Section Heading */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  marginBottom: '28px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '3px',
+                    height: '16px',
+                    background: 'var(--green)',
+                    borderRadius: '2px',
+                    boxShadow: '0 0 8px rgba(0,255,148,0.6)',
+                    flexShrink: 0,
+                  }}
+                />
+                <h2
+                  style={{
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    color: 'var(--green)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {currentStep === 1 ? 'IDENTITY' : currentStep === 2 ? 'EXPERIENCE' : 'SKILLS'}
+                </h2>
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {currentStep === 1 && (
+                    <PersonalInfoForm
+                      data={resumeData}
+                      onChange={(data) => setResumeData({ ...resumeData, ...data })}
+                    />
+                  )}
+                  {currentStep === 2 && (
+                    <ExperienceForm
+                      data={resumeData.experience}
+                      onChange={(data) => updateStepData('experience', data)}
+                    />
+                  )}
+                  {currentStep === 3 && (
+                    <SkillsForm
+                      data={resumeData.skills}
+                      onChange={(data) => updateStepData('skills', data)}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Navigation buttons */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: '40px',
+                  paddingTop: '24px',
+                  borderTop: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                <button
+                  onClick={handleBack}
+                  disabled={currentStep === 1}
+                  style={{
+                    padding: '12px 24px',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: currentStep === 1 ? 'rgba(102, 102, 128, 0.5)' : '#666680',
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: '12px',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    borderRadius: '4px',
+                    cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
+                    opacity: currentStep === 1 ? 0.5 : 1,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentStep !== 1) {
+                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentStep !== 1) {
+                      e.currentTarget.style.color = '#666680';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    }
+                  }}
+                >
+                  ← BACK
+                </button>
+
+                <button
+                  onClick={handleNext}
+                  style={{
+                    padding: '14px 32px',
+                    background: 'linear-gradient(135deg, #00FF94 0%, #00CC77 100%)',
+                    color: '#020208',
+                    fontFamily: 'Space Grotesk',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    letterSpacing: '0.05em',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 0 40px rgba(0,255,148,0.4)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {currentStep === STEPS.length ? (
+                    <>🤖 GET AI SCORE →</>
+                  ) : (
+                    'NEXT STEP →'
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
