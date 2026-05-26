@@ -5,6 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { config } from './lib/wagmi';
 import { Auth } from './pages/Auth';
+import { AuthCallback } from './pages/AuthCallback';
 import { Dashboard } from './pages/Dashboard';
 import { ResumeBuilder } from './pages/ResumeBuilder';
 import { ScorePage } from './pages/ScorePage';
@@ -29,6 +30,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/auth" replace />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/builder" element={<ResumeBuilder />} />
               <Route path="/score/:resumeId?" element={<ScorePage />} />
