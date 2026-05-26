@@ -51,7 +51,7 @@ Analyze every bullet point in experience and achievements. Be specific and actio
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -114,7 +114,7 @@ Return ONLY the improved bullet point, nothing else."""
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "user", "content": prompt}
             ],
@@ -177,7 +177,7 @@ Analyze every bullet point in experience and achievements. Be specific."""
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-70b-versatile",
             messages=[
                 {"role": "user", "content": prompt}
             ],

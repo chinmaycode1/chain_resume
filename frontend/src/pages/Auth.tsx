@@ -41,28 +41,53 @@ export const Auth = () => {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: {
+              email: email,
+            }
           },
         });
 
         if (error) throw error;
 
         if (data.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email!,
-          });
-          
           // Check if email confirmation is required
-          if (data.user.identities && data.user.identities.length === 0) {
-            setError('Please check your email to confirm your account.');
-          } else {
+          if (data.session) {
+            // User is immediately logged in (email confirmation disabled)
+            setUser({
+              id: data.user.id,
+              email: data.user.email!,
+            });
             navigate('/builder');
+          } else {
+            // Email confirmation required
+            setError('Success! Please check your email to confirm your account, then sign in.');
+            setIsLogin(true); // Switch to login mode
           }
         }
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      setError(err.message || 'Authentication failed. Please check your credentials.');
+      console.error('Error details:', {
+        message: err.message,
+        status: err.status,
+        statusText: err.statusText,
+        name: err.name
+      });
+      
+      let errorMessage = err.message || 'Authentication failed. Please check your credentials.';
+      
+      // Provide more helpful error messages
+      if (err.message?.includes('Invalid API key')) {
+        errorMessage = 'Invalid Supabase configuration. Please check your API keys in the .env file.';
+      } else if (err.message?.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and confirm your account before signing in.';
+      } else if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (err.message?.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Please sign in instead.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -84,45 +84,66 @@ export const ResumeBuilder = () => {
   };
 
   const handleSubmit = async () => {
-    if (!user) return;
+    if (!user) {
+      alert('Please sign in to save your resume');
+      navigate('/auth');
+      return;
+    }
 
     try {
+      console.log('Saving resume...', { ...resumeData, user_id: user.id });
+      
       const response = await fetch(`${API_URL}/api/resume/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...resumeData, user_id: user.id }),
       });
 
-      if (response.ok) {
-        setResume(resumeData);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Save failed:', response.status, errorText);
+        alert(`Failed to save resume: ${response.status} ${response.statusText}`);
+        return;
+      }
+
+      const savedData = await response.json();
+      console.log('Resume saved successfully:', savedData);
+      setResume(resumeData);
+      
+      // Ask if user wants to score the resume
+      const shouldScore = window.confirm('Resume saved! Would you like to get your AI score now?');
+      if (shouldScore) {
+        console.log('Scoring resume...');
         
-        // Ask if user wants to score the resume
-        const shouldScore = window.confirm('Resume saved! Would you like to get your AI score now?');
-        if (shouldScore) {
-          // Score the resume
-          const scoreResponse = await fetch(`${API_URL}/api/resume/score`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...resumeData, user_id: user.id }),
-          });
-          
-          if (scoreResponse.ok) {
-            navigate('/score');
-          } else {
-            navigate('/dashboard');
-          }
+        // Score the resume
+        const scoreResponse = await fetch(`${API_URL}/api/resume/score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...resumeData, user_id: user.id }),
+        });
+        
+        if (scoreResponse.ok) {
+          const scoreData = await scoreResponse.json();
+          console.log('Score received:', scoreData);
+          navigate('/score');
         } else {
-          // Show option to view 3D card
-          const viewCard = window.confirm('Want to see your resume as a 3D holographic card?');
-          if (viewCard) {
-            navigate('/card');
-          } else {
-            navigate('/dashboard');
-          }
+          const errorText = await scoreResponse.text();
+          console.error('Scoring failed:', scoreResponse.status, errorText);
+          alert(`Failed to score resume: ${scoreResponse.status} ${scoreResponse.statusText}`);
+          navigate('/dashboard');
+        }
+      } else {
+        // Show option to view 3D card
+        const viewCard = window.confirm('Want to see your resume as a 3D holographic card?');
+        if (viewCard) {
+          navigate('/card');
+        } else {
+          navigate('/dashboard');
         }
       }
     } catch (error) {
       console.error('Failed to save resume:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
     }
   };
 

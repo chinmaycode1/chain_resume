@@ -1,10 +1,10 @@
-from pydantic import BaseModel, EmailStr, HttpUrl
-from typing import List, Optional
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator
+from typing import List, Optional, Union
 from datetime import datetime
 
 class Link(BaseModel):
     platform: str  # github, linkedin, twitter, portfolio, etc.
-    url: HttpUrl
+    url: Union[HttpUrl, str]
 
 class Skill(BaseModel):
     name: str
@@ -14,9 +14,9 @@ class Skill(BaseModel):
 class Project(BaseModel):
     title: str
     description: str
-    technologies: List[str]
-    url: Optional[HttpUrl] = None
-    github_url: Optional[HttpUrl] = None
+    technologies: List[str] = []
+    url: Optional[Union[HttpUrl, str]] = None
+    github_url: Optional[Union[HttpUrl, str]] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 
@@ -26,8 +26,8 @@ class Experience(BaseModel):
     location: Optional[str] = None
     start_date: str
     end_date: Optional[str] = None  # None means current
-    description: str
-    achievements: List[str]
+    description: str = ""
+    achievements: List[str] = []
 
 class Education(BaseModel):
     institution: str
@@ -41,16 +41,16 @@ class Education(BaseModel):
 
 class Resume(BaseModel):
     user_id: str
-    full_name: str
-    email: EmailStr
+    full_name: str = ""
+    email: str = ""
     phone: Optional[str] = None
     location: Optional[str] = None
-    title: str  # Professional title/headline
-    summary: str
-    education: List[Education]
-    experience: List[Experience]
-    skills: List[Skill]
-    projects: List[Project]
-    links: List[Link]
+    title: str = ""  # Professional title/headline
+    summary: str = ""
+    education: List[Education] = []
+    experience: List[Experience] = []
+    skills: List[Skill] = []
+    projects: List[Project] = []
+    links: List[Link] = []
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

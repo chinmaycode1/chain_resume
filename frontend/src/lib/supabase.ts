@@ -3,6 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+console.log('🔍 Supabase Config Check:');
+console.log('URL:', supabaseUrl);
+console.log('Key (first 50 chars):', supabaseAnonKey?.substring(0, 50) + '...');
+console.log('Key length:', supabaseAnonKey?.length);
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase env vars:', {
     url: supabaseUrl ? '✓ present' : '✗ MISSING',
@@ -18,6 +23,12 @@ if (!supabaseAnonKey.includes('.') || supabaseAnonKey.split('.').length !== 3) {
   throw new Error('Invalid Supabase anon key format. Get the full key from Supabase dashboard.');
 }
 
-console.log('✓ Supabase client initialized:', supabaseUrl);
+console.log('✅ Supabase client initialized');
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
